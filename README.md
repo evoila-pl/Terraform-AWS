@@ -1,6 +1,6 @@
 ![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)
 
-# Terrafrom examples for Terraform & AWS
+# Terrafrom examples for AWS
 Here you'll find a really clear example of using Terraform with AWS.
 
 ## Sources and useful links:
