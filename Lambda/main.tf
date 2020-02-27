@@ -1,11 +1,12 @@
 # Providers
 
 provider "aws" {
-  region = "eu-central-1"
+  region  = "eu-central-1"
   profile = "Lab"
 }
 
-provider "archive" {}
+provider "archive" {
+}
 
 data "archive_file" "zip" {
   type = "zip"
@@ -17,7 +18,7 @@ data "archive_file" "zip" {
 
 data "aws_iam_policy_document" "policy" {
   statement {
-    sid = ""
+    sid    = ""
     effect = "Allow"
 
     principals {
@@ -31,7 +32,7 @@ data "aws_iam_policy_document" "policy" {
 
 resource "aws_iam_role" "iam_for_lambda" {
   name = "iam_for_lambda"
-  assume_role_policy = "${data.aws_iam_policy_document.policy.json}"
+  assume_role_policy = data.aws_iam_policy_document.policy.json
 }
 
 # CloudWatch - Schedule
@@ -42,17 +43,17 @@ resource "aws_cloudwatch_event_rule" "schedule" {
 }
 
 resource "aws_cloudwatch_event_target" "check_schedule" {
-  rule = "${aws_cloudwatch_event_rule.schedule.name}"
+  rule = aws_cloudwatch_event_rule.schedule.name
   target_id = "lambda"
-  arn = "${aws_lambda_function.lambda.arn}"
+  arn = aws_lambda_function.lambda.arn
 }
 
 resource "aws_lambda_permission" "allow_cloudwatch_to_call_lambda" {
   statement_id = "AllowExecutionFromCloudWatch"
   action = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.lambda.function_name}"
+  function_name = aws_lambda_function.lambda.function_name
   principal = "events.amazonaws.com"
-  source_arn = "${aws_cloudwatch_event_rule.schedule.arn}"
+  source_arn = aws_cloudwatch_event_rule.schedule.arn
 }
 
 # CloudWatch - Logs
@@ -80,12 +81,13 @@ resource "aws_iam_policy" "lambda_logging" {
       }
     ]
   }
-  EOT
+EOT
+
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_logs" {
-  role = "${aws_iam_role.iam_for_lambda.name}"
-  policy_arn = "${aws_iam_policy.lambda_logging.arn}"
+  role = aws_iam_role.iam_for_lambda.name
+  policy_arn = aws_iam_policy.lambda_logging.arn
 }
 
 # Lambda
@@ -93,10 +95,10 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 resource "aws_lambda_function" "lambda" {
   function_name = "hello_lambda"
 
-  filename = "${data.archive_file.zip.output_path}"
-  source_code_hash = "${data.archive_file.zip.output_base64sha256}"
+  filename = data.archive_file.zip.output_path
+  source_code_hash = data.archive_file.zip.output_base64sha256
 
-  role = "${aws_iam_role.iam_for_lambda.arn}"
+  role = aws_iam_role.iam_for_lambda.arn
   handler = "hello_lambda.lambda_handler"
   runtime = "python3.6"
 
